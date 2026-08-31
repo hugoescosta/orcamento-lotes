@@ -146,6 +146,21 @@
     border-color:var(--navy);
     color:var(--paper);
   }
+  .plan-btn:disabled{
+    background:rgba(255,255,255,0.5);
+    border-color:#E4DFD1;
+    color:#B7B0A0;
+    cursor:not-allowed;
+  }
+  .plan-btn:disabled.active{
+    background:#D8D2C2;
+    border-color:#D8D2C2;
+    color:#8A8371;
+  }
+  .condicao-hint{
+    font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.4;
+    min-height:1px;
+  }
 
   .adjust{display:flex;gap:10px;margin-top:14px;}
   .adjust .field{flex:1;}
@@ -260,20 +275,22 @@
       </div>
     </div>
 
-    <label style="margin-top:14px;">Plano de pagamento</label>
-    <div class="plan-group-label">Parcelamento direto</div>
-    <div class="plans" id="plansDirect">
-      <button class="plan-btn active" data-plan="avista">À Vista</button>
-      <button class="plan-btn" data-plan="p12">12x</button>
-      <button class="plan-btn" data-plan="p24">24x</button>
-      <button class="plan-btn" data-plan="p36">36x</button>
+    <label style="margin-top:14px;">Forma de Pagamento</label>
+    <div class="plans" id="plansForma">
+      <button class="plan-btn active" data-forma="avista">À Vista</button>
+      <button class="plan-btn" data-forma="p12">12x</button>
+      <button class="plan-btn" data-forma="p24">24x</button>
+      <button class="plan-btn" data-forma="p36">36x</button>
+      <button class="plan-btn" data-forma="p144">144x</button>
     </div>
-    <div class="plan-group-label">Financiamento 144x</div>
-    <div class="plans" id="plansFinance">
-      <button class="plan-btn" data-plan="semBalao">Sem Balão</button>
-      <button class="plan-btn" data-plan="comBalao">Com Balão</button>
-      <button class="plan-btn" data-plan="semEntrada">Sem Entrada</button>
+
+    <label style="margin-top:14px;">Condição de Pagamento</label>
+    <div class="plans" id="plansCondicao">
+      <button class="plan-btn active" data-condicao="semBalao">Sem Balão</button>
+      <button class="plan-btn" data-condicao="comBalao">Com Balão</button>
+      <button class="plan-btn" data-condicao="semEntrada">Sem Entrada</button>
     </div>
+    <div class="condicao-hint" id="condicaoHint"></div>
 
     <div class="adjust">
       <div class="field">
@@ -336,15 +353,56 @@ for (let i=0;i<CELLS;i++){
   plotmap.appendChild(d);
 }
 
-let currentPlan = 'avista';
+const FORMAS_COM_CONDICAO = new Set(['p144']); // formas que hoje têm dados por condição (Sem Balão/Com Balão/Sem Entrada)
+
+let currentForma = 'avista';
+let currentCondicao = 'semBalao';
 let lastResult = null;
-document.querySelectorAll('.plan-btn').forEach(btn=>{
+
+function syncCondicaoAvailability(){
+  const temCondicao = FORMAS_COM_CONDICAO.has(currentForma);
+  const condicaoBtns = document.querySelectorAll('#plansCondicao .plan-btn');
+  const hint = document.getElementById('condicaoHint');
+
+  condicaoBtns.forEach(btn => {
+    const isSemBalao = btn.dataset.condicao === 'semBalao';
+    if (!temCondicao){
+      // sem dados de condição ainda para esta forma: só "Sem Balão" fica disponível
+      btn.disabled = !isSemBalao;
+      if (!isSemBalao) btn.classList.remove('active');
+    } else {
+      btn.disabled = false;
+    }
+  });
+
+  if (!temCondicao){
+    currentCondicao = 'semBalao';
+    document.querySelector('#plansCondicao .plan-btn[data-condicao="semBalao"]').classList.add('active');
+    hint.textContent = 'Com Balão e Sem Entrada ainda não têm valores cadastrados para esta forma de pagamento — em breve.';
+  } else {
+    hint.textContent = '';
+  }
+}
+
+document.querySelectorAll('#plansForma .plan-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.plan-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('#plansForma .plan-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    currentPlan = btn.dataset.plan;
+    currentForma = btn.dataset.forma;
+    syncCondicaoAvailability();
   });
 });
+
+document.querySelectorAll('#plansCondicao .plan-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if (btn.disabled) return;
+    document.querySelectorAll('#plansCondicao .plan-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentCondicao = btn.dataset.condicao;
+  });
+});
+
+syncCondicaoAvailability();
 
 const fmt = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 const fmtArea = n => n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' m²';
@@ -430,7 +488,7 @@ document.getElementById('go').addEventListener('click', () => {
     document.getElementById('planNote').textContent = note;
   };
 
-  if (currentPlan === 'avista'){
+  if (currentForma === 'avista'){
     const av = row[IDX.avista];
     const avDesc = av * (1-desconto);
     addArea();
@@ -438,11 +496,11 @@ document.getElementById('go').addEventListener('click', () => {
     addSpec('Valor à Vista', av, avDesc);
     setLabelNote('À Vista', 'Pagamento único, com 25% de desconto já aplicado sobre o saldo (valor - entrada de tabela).');
 
-  } else if (currentPlan === 'p12' || currentPlan === 'p24' || currentPlan === 'p36'){
+  } else if (currentForma === 'p12' || currentForma === 'p24' || currentForma === 'p36'){
     const entrada = row[IDX.entrada];
     const entradaDesc = entrada * (1-desconto);
     const map = {p12:{n:12, idx:IDX.p12, desc:15}, p24:{n:24, idx:IDX.p24, desc:7.5}, p36:{n:36, idx:IDX.p36, desc:0}};
-    const {n, idx, desc} = map[currentPlan];
+    const {n, idx, desc} = map[currentForma];
     const parcela = row[idx];
     const parcelaDesc = parcela * (1-desconto);
     addArea();
@@ -454,18 +512,18 @@ document.getElementById('go').addEventListener('click', () => {
         ? `Entrada + ${n} parcelas mensais, com ${desc}% de desconto sobre o saldo financiado.`
         : `Entrada + ${n} parcelas mensais, com correção IPCA sobre o saldo.`);
 
-  } else if (currentPlan === 'semEntrada'){
+  } else if (currentCondicao === 'semEntrada'){
     const financ = row[IDX.semEntrada];
     const financDesc = financ * (1-desconto);
     addArea();
     addSpec('Valor', valor, valorDesc);
     addSpec('Financiamento (1 + 143x)', financ, financDesc);
-    setLabelNote('Sem Entrada', 'Sem entrada: 1ª parcela + 143 parcelas mensais. Correção: IPCA+6% ao ano sobre o saldo.');
+    setLabelNote('144x — Sem Entrada', 'Sem entrada: 1ª parcela + 143 parcelas mensais. Correção: IPCA+6% ao ano sobre o saldo.');
 
   } else {
     const entrada = row[IDX.entrada];
     const entradaDesc = entrada * (1-desconto);
-    const financ = currentPlan === 'comBalao' ? row[IDX.comBalao] : row[IDX.semBalao];
+    const financ = currentCondicao === 'comBalao' ? row[IDX.comBalao] : row[IDX.semBalao];
     const financDesc = financ * (1-desconto);
 
     addArea();
@@ -474,13 +532,13 @@ document.getElementById('go').addEventListener('click', () => {
     addSpec(`Facilitada em 1 + ${divisor}`, entradaDesc/(divisor+1));
     addSpec('Financiamento (144x)', financ, financDesc);
 
-    if (currentPlan === 'comBalao'){
+    if (currentCondicao === 'comBalao'){
       const balao = row[IDX.balaoAnual];
       const balaoDesc = balao * (1-desconto);
       addSpec('Balão anual (12x)', balao, balaoDesc);
-      setLabelNote('Com Balão', 'Parcela mensal reduzida + 1 balão anual (12 parcelas do balão ao longo do contrato). Correção: IPCA+6% a.a. (fixo).');
+      setLabelNote('144x — Com Balão', 'Parcela mensal reduzida + 1 balão anual (12 parcelas do balão ao longo do contrato). Correção: IPCA+6% a.a. (fixo).');
     } else {
-      setLabelNote('Sem Balão', 'Entrada facilitada + 144 parcelas mensais de financiamento, sem balão anual. Correção: IPCA+6% a.a. (fixo).');
+      setLabelNote('144x — Sem Balão', 'Entrada facilitada + 144 parcelas mensais de financiamento, sem balão anual. Correção: IPCA+6% a.a. (fixo).');
     }
   }
 

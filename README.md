@@ -29,9 +29,18 @@ cliente.
 | `Facilitada em 1 + 2` = Entrada com desconto ÷ 2 | Campo **Facilitada em 1 + [divisor]**, divisor editável (padrão 2) — disponível só nos 3 planos de 144x |
 | Código do lote `=VALUE(CONCATENATE(Quadra,Lote))` | Busca feita por `quadra-lote` diretamente no JSON, mesmo resultado |
 
-Os 7 planos ficam organizados em dois grupos no app:
-- **Parcelamento direto:** À Vista, 12x, 24x, 36x
-- **Financiamento 144x:** Sem Balão, Com Balão, Sem Entrada
+A escolha no app acontece em dois passos, como um funil:
+1. **Forma de Pagamento:** À Vista, 12x, 24x, 36x ou 144x
+2. **Condição de Pagamento:** Sem Balão, Com Balão ou Sem Entrada
+
+Hoje, só a forma **144x** tem dados próprios para as 3 condições (vindos das
+3 abas de plano da planilha). Para À Vista, 12x, 24x e 36x, a planilha
+ainda não tem colunas separadas por condição — nesses casos o app trava
+automaticamente a condição em **Sem Balão** e desabilita Com Balão/Sem
+Entrada (com um aviso "em breve"), mas a estrutura de dados e a interface
+já estão prontas: assim que a planilha ganhar colunas de Com Balão/Sem
+Entrada para essas formas, é só extrair os novos dados (seção 7) e
+liberar as condições correspondentes no código.
 
 As fórmulas de cada coluna foram conferidas manualmente contra a planilha
 original antes de entrar no app (ex.: Quadra 1 / Lote 1 → À Vista R$
