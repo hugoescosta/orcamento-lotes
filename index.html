@@ -121,6 +121,9 @@
     color:var(--ink);
   }
   input:focus{outline:none;border-color:var(--amber-deep);}
+  input:disabled{
+    background:#EFEBE0;color:#A8A192;cursor:not-allowed;
+  }
 
   .plans{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
   .plan-group-label{
@@ -225,6 +228,10 @@
     text-align:center;font-size:11px;color:var(--muted);
     margin-top:26px;font-family:'IBM Plex Mono',monospace;
   }
+  .version-tag{
+    margin-top:14px;font-size:9.5px;color:var(--muted);opacity:.5;
+    letter-spacing:.03em;
+  }
   .broker{
     text-align:center;font-size:12.5px;color:var(--paper);
     margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
@@ -302,6 +309,7 @@
         <input type="number" id="divisor" value="2" min="1" max="12" step="1">
       </div>
     </div>
+    <div class="condicao-hint" id="descontoHint"></div>
 
     <button class="go" id="go">Calcular orçamento</button>
   </div>
@@ -330,6 +338,7 @@
     <div class="broker" style="border-top:none;margin-top:8px;padding-top:0;">
       <span class="name">Elizete Aurélio — Creci 25456</span> &middot; <span class="phone">WhatsApp: (85) 99673-7694</span>
     </div>
+    <div class="version-tag">v1.8 · 2026-08-31</div>
   </footer>
 </div>
 
@@ -359,7 +368,7 @@ let currentForma = 'avista';
 let currentCondicao = 'semBalao';
 let lastResult = null;
 
-function syncCondicaoAvailability(){
+function syncFormaUI(){
   const temCondicao = FORMAS_COM_CONDICAO.has(currentForma);
   const condicaoBtns = document.querySelectorAll('#plansCondicao .plan-btn');
   const hint = document.getElementById('condicaoHint');
@@ -382,6 +391,19 @@ function syncCondicaoAvailability(){
   } else {
     hint.textContent = '';
   }
+
+  // À Vista já embute 25% de desconto de tabela — desconto extra fica desabilitado
+  // para não compor dois descontos sobre o mesmo valor.
+  const descontoInput = document.getElementById('desconto');
+  const descontoHint = document.getElementById('descontoHint');
+  if (currentForma === 'avista'){
+    descontoInput.value = 0;
+    descontoInput.disabled = true;
+    descontoHint.textContent = 'Não se aplica ao À Vista — o desconto de 25% já vem embutido no valor à vista.';
+  } else {
+    descontoInput.disabled = false;
+    descontoHint.textContent = '';
+  }
 }
 
 document.querySelectorAll('#plansForma .plan-btn').forEach(btn=>{
@@ -389,7 +411,7 @@ document.querySelectorAll('#plansForma .plan-btn').forEach(btn=>{
     document.querySelectorAll('#plansForma .plan-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     currentForma = btn.dataset.forma;
-    syncCondicaoAvailability();
+    syncFormaUI();
   });
 });
 
@@ -402,7 +424,7 @@ document.querySelectorAll('#plansCondicao .plan-btn').forEach(btn=>{
   });
 });
 
-syncCondicaoAvailability();
+syncFormaUI();
 
 const fmt = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 const fmtArea = n => n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' m²';
