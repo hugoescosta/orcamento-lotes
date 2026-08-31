@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F2A3D">
+<title>Orçamento de Lotes</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0F2A3D;
+    --navy-deep:#0A1D2C;
+    --paper:#F5F2E8;
+    --grid:#3E6E86;
+    --amber:#E0A62B;
+    --amber-deep:#B9820E;
+    --ink:#0B1A26;
+    --muted:#6B8296;
+    --ok:#5FA97A;
+    --line:rgba(255,255,255,0.14);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:
+      linear-gradient(var(--navy-deep), var(--navy-deep)) fixed,
+      repeating-linear-gradient(0deg, var(--line) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 40px);
+    background-color:var(--navy);
+    color:var(--paper);
+    min-height:100vh;
+    padding:20px 16px 48px;
+  }
+  .wrap{max-width:520px;margin:0 auto;}
+  header{margin:6px 0 22px;display:flex;align-items:center;gap:14px;}
+  .brand-logo{
+    width:56px;height:56px;flex:0 0 auto;
+    background:#fff;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    padding:6px;box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+  .brand-logo img{width:100%;height:100%;object-fit:contain;}
+  .header-text{min-width:0;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--amber);
+    display:flex;align-items:center;gap:8px;
+  }
+  .eyebrow::before{content:"";width:16px;height:1px;background:var(--amber);display:inline-block;}
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:28px;
+    line-height:1.15;
+    margin:8px 0 4px;
+    font-weight:700;
+    letter-spacing:-.01em;
+  }
+  .sub{color:var(--muted);font-size:14px;max-width:38ch;}
+
+  .plotmap{
+    display:grid;
+    grid-template-columns:repeat(12,1fr);
+    gap:3px;
+    margin:20px 0 22px;
+    padding:14px;
+    background:rgba(0,0,0,0.18);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+  }
+  .plot{
+    aspect-ratio:1;
+    background:rgba(255,255,255,0.06);
+    border-radius:3px;
+    transition:background .25s ease, transform .25s ease;
+  }
+  .plot.hit{background:var(--amber);box-shadow:0 0 0 2px rgba(224,166,43,.35);}
+
+  .card{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:var(--radius);
+    padding:18px;
+    margin-bottom:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+  }
+  .card h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin:0 0 14px;
+    color:var(--navy);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  label{
+    display:block;font-size:11px;font-weight:600;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;
+  }
+  .card label{color:#5A6E7E;}
+  input[type=number], input[type=text]{
+    width:100%;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:18px;
+    padding:11px 12px;
+    border-radius:9px;
+    border:1.5px solid #D8D2C2;
+    background:#fff;
+    color:var(--ink);
+  }
+  input:focus{outline:none;border-color:var(--amber-deep);}
+
+  .plans{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+  .plan-group-label{
+    font-size:10.5px;font-weight:600;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.06em;margin-top:14px;
+  }
+  .plan-btn{
+    flex:1 1 auto;
+    min-width:100px;
+    border:1.5px solid #D8D2C2;
+    background:#fff;
+    color:var(--navy);
+    font-family:'Inter';
+    font-weight:600;
+    font-size:12.5px;
+    padding:10px 8px;
+    border-radius:9px;
+    cursor:pointer;
+    text-align:center;
+  }
+  .plan-btn.active{
+    background:var(--navy);
+    border-color:var(--navy);
+    color:var(--paper);
+  }
+
+  .adjust{display:flex;gap:10px;margin-top:14px;}
+  .adjust .field{flex:1;}
+
+  button.go{
+    width:100%;
+    margin-top:16px;
+    background:var(--amber);
+    color:var(--navy-deep);
+    border:none;
+    padding:14px;
+    border-radius:10px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:.02em;
+    cursor:pointer;
+  }
+  button.go:active{transform:scale(.99);}
+  button.go[disabled]{opacity:.5;}
+
+  #result{display:none;}
+  .code-tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;color:var(--muted);
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--line);
+    display:inline-block;
+    padding:3px 8px;border-radius:6px;
+    margin-bottom:14px;
+  }
+  .spec{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:11px 0;border-bottom:1px dashed #DCD6C6;
+    gap:12px;
+  }
+  .spec:last-child{border-bottom:none;}
+  .spec .k{font-size:13px;color:#5A6E7E;}
+  .spec .v{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:16px;font-weight:600;text-align:right;
+  }
+  .spec .v small{display:block;font-size:10.5px;color:var(--ok);font-weight:500;}
+  .note{
+    font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;
+  }
+  .empty, .warn{
+    text-align:center;color:var(--muted);font-size:13px;padding:18px 10px;
+  }
+  .warn{color:#E08A2B;}
+  footer{
+    text-align:center;font-size:11px;color:var(--muted);
+    margin-top:26px;font-family:'IBM Plex Mono',monospace;
+  }
+  .broker{
+    text-align:center;font-size:12.5px;color:var(--paper);
+    margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
+  }
+  .broker .name{font-weight:600;}
+  .broker .phone{color:var(--amber);font-family:'IBM Plex Mono',monospace;}
+
+  button.pdf{
+    width:100%;margin-top:10px;
+    background:transparent;
+    border:1.5px solid var(--navy);
+    color:var(--navy);
+    padding:12px;border-radius:10px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;font-size:14px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  button.pdf:active{transform:scale(.99);}
+  button.pdf svg{width:16px;height:16px;}
+  button.pdf[disabled]{opacity:.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand-logo"><img src="logo.png" alt="Militão Imóveis"></div>
+    <div class="header-text">
+      <div class="eyebrow">Consulta &amp; Orçamento</div>
+      <h1>Orçamento de Lotes</h1>
+      <div class="sub">Informe quadra e lote para localizar o imóvel na base e montar a proposta.</div>
+    </div>
+  </header>
+
+  <div class="plotmap" id="plotmap" aria-hidden="true"></div>
+
+  <div class="card">
+    <h2>Localização do lote</h2>
+    <div class="field-row">
+      <div>
+        <label for="quadra">Quadra</label>
+        <input type="number" id="quadra" inputmode="numeric" placeholder="ex: 1">
+      </div>
+      <div>
+        <label for="lote">Lote</label>
+        <input type="number" id="lote" inputmode="numeric" placeholder="ex: 1">
+      </div>
+    </div>
+
+    <label style="margin-top:14px;">Plano de pagamento</label>
+    <div class="plan-group-label">Parcelamento direto</div>
+    <div class="plans" id="plansDirect">
+      <button class="plan-btn active" data-plan="avista">À Vista</button>
+      <button class="plan-btn" data-plan="p12">12x</button>
+      <button class="plan-btn" data-plan="p24">24x</button>
+      <button class="plan-btn" data-plan="p36">36x</button>
+    </div>
+    <div class="plan-group-label">Financiamento 144x</div>
+    <div class="plans" id="plansFinance">
+      <button class="plan-btn" data-plan="semBalao">Sem Balão</button>
+      <button class="plan-btn" data-plan="comBalao">Com Balão</button>
+      <button class="plan-btn" data-plan="semEntrada">Sem Entrada</button>
+    </div>
+
+    <div class="adjust">
+      <div class="field">
+        <label for="desconto">Desconto (%)</label>
+        <input type="number" id="desconto" value="0" min="0" max="90" step="1">
+      </div>
+      <div class="field">
+        <label for="divisor">Facilitada em 1 +</label>
+        <input type="number" id="divisor" value="2" min="1" max="12" step="1">
+      </div>
+    </div>
+
+    <button class="go" id="go">Calcular orçamento</button>
+  </div>
+
+  <div class="card" id="result">
+    <h2>Resumo da proposta <span id="planLabel"></span></h2>
+    <div class="code-tag" id="codeTag"></div>
+    <div id="specs"></div>
+    <div class="note" id="planNote"></div>
+    <div class="broker">
+      <div class="name">Corretora: Elizete Aurélio — Creci 25456</div>
+      <div class="phone">WhatsApp: (85) 99673-7694</div>
+    </div>
+    <button class="pdf" id="pdfBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      Baixar em PDF
+    </button>
+  </div>
+
+  <div class="card" id="emptyState">
+    <div class="empty">Nenhuma consulta ainda. Informe quadra e lote acima e toque em <strong>Calcular orçamento</strong>.</div>
+  </div>
+
+  <footer>
+    Base: aba "Tabela" &middot; <span id="rowcount"></span> lotes carregados
+    <div class="broker" style="border-top:none;margin-top:8px;padding-top:0;">
+      <span class="name">Elizete Aurélio — Creci 25456</span> &middot; <span class="phone">WhatsApp: (85) 99673-7694</span>
+    </div>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="logo-base64.js"></script>
+<script src="data.js"></script>
+<script>
+// LOTES_DATA columns: [quadra, lote, area, valor, entrada, avista1x, parcela12x, parcela24x, parcela36x, semBalao144x, balaoAnual, comBalao144x, semEntrada144x]
+const IDX = {quadra:0, lote:1, area:2, valor:3, entrada:4, avista:5, p12:6, p24:7, p36:8, semBalao:9, balaoAnual:10, comBalao:11, semEntrada:12};
+
+const byCode = new Map();
+LOTES_DATA.forEach(row => byCode.set(row[IDX.quadra] + '-' + row[IDX.lote], row));
+document.getElementById('rowcount').textContent = LOTES_DATA.length;
+
+// signature plot-map: draw a mini grid, highlight cell on lookup
+const plotmap = document.getElementById('plotmap');
+const CELLS = 60;
+for (let i=0;i<CELLS;i++){
+  const d = document.createElement('div');
+  d.className='plot';
+  plotmap.appendChild(d);
+}
+
+let currentPlan = 'avista';
+let lastResult = null;
+document.querySelectorAll('.plan-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.plan-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPlan = btn.dataset.plan;
+  });
+});
+
+const fmt = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+const fmtArea = n => n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' m²';
+
+function highlightPlot(seed){
+  document.querySelectorAll('.plot').forEach(p=>p.classList.remove('hit'));
+  const idx = Math.abs(seed) % CELLS;
+  plotmap.children[idx].classList.add('hit');
+}
+
+function specRow(label, value, discounted){
+  const wrap = document.createElement('div');
+  wrap.className='spec';
+  const k = document.createElement('div'); k.className='k'; k.textContent=label;
+  const v = document.createElement('div'); v.className='v';
+  v.innerHTML = fmt(value) + (discounted!=null && discounted!==value ? `<small>${fmt(discounted)} com desconto</small>` : '');
+  wrap.appendChild(k); wrap.appendChild(v);
+  return wrap;
+}
+
+document.getElementById('go').addEventListener('click', () => {
+  const q = parseInt(document.getElementById('quadra').value, 10);
+  const l = parseInt(document.getElementById('lote').value, 10);
+  const desconto = Math.min(Math.max(parseFloat(document.getElementById('desconto').value)||0, 0), 90) / 100;
+  const divisor = Math.max(parseInt(document.getElementById('divisor').value,10) || 2, 1);
+
+  const resultCard = document.getElementById('result');
+  const emptyState = document.getElementById('emptyState');
+  const specs = document.getElementById('specs');
+  specs.innerHTML='';
+
+  if (isNaN(q) || isNaN(l)){
+    emptyState.innerHTML = '<div class="warn">Informe quadra e lote válidos.</div>';
+    resultCard.style.display='none';
+    emptyState.style.display='block';
+    return;
+  }
+
+  const row = byCode.get(q+'-'+l);
+  if (!row){
+    emptyState.innerHTML = `<div class="warn">Nenhum lote encontrado para Quadra ${q} / Lote ${l}. Confira o código na base.</div>`;
+    resultCard.style.display='none';
+    emptyState.style.display='block';
+    return;
+  }
+
+  emptyState.style.display='none';
+  resultCard.style.display='block';
+  highlightPlot(q*97 + l*13);
+
+  const codeText = `QUADRA ${row[IDX.quadra]} · LOTE ${row[IDX.lote]} · CÓD. ${row[IDX.quadra]}${row[IDX.lote]}`;
+  document.getElementById('codeTag').textContent = codeText;
+
+  const area = row[IDX.area];
+  const valor = row[IDX.valor];
+  const valorDesc = valor * (1-desconto);
+
+  const resultRows = [];
+  const addArea = () => {
+    const w=document.createElement('div'); w.className='spec';
+    w.innerHTML = `<div class="k">Área M²</div><div class="v">${fmtArea(area)}</div>`; specs.appendChild(w);
+    resultRows.push({label:'Área M²', value:fmtArea(area), discounted:null});
+  };
+  const addSpec = (label, value, discounted) => {
+    specs.appendChild(specRow(label, value, discounted));
+    resultRows.push({label, value:fmt(value), discounted: (discounted!=null && discounted!==value) ? fmt(discounted) : null});
+  };
+  let planLabelText = '', planNoteText = '';
+  const setLabelNote = (label, note) => {
+    planLabelText = label; planNoteText = note;
+    document.getElementById('planLabel').textContent = '— ' + label;
+    document.getElementById('planNote').textContent = note;
+  };
+
+  if (currentPlan === 'avista'){
+    const av = row[IDX.avista];
+    const avDesc = av * (1-desconto);
+    addArea();
+    addSpec('Valor Total', valor, valorDesc);
+    addSpec('Valor à Vista', av, avDesc);
+    setLabelNote('À Vista', 'Pagamento único, com 25% de desconto já aplicado sobre o saldo (valor - entrada de tabela).');
+
+  } else if (currentPlan === 'p12' || currentPlan === 'p24' || currentPlan === 'p36'){
+    const entrada = row[IDX.entrada];
+    const entradaDesc = entrada * (1-desconto);
+    const map = {p12:{n:12, idx:IDX.p12, desc:15}, p24:{n:24, idx:IDX.p24, desc:7.5}, p36:{n:36, idx:IDX.p36, desc:0}};
+    const {n, idx, desc} = map[currentPlan];
+    const parcela = row[idx];
+    const parcelaDesc = parcela * (1-desconto);
+    addArea();
+    addSpec('Valor Total', valor, valorDesc);
+    addSpec('Entrada', entrada, entradaDesc);
+    addSpec(`Parcela (${n}x)`, parcela, parcelaDesc);
+    setLabelNote(`${n}x`,
+      desc > 0
+        ? `Entrada + ${n} parcelas mensais, com ${desc}% de desconto sobre o saldo financiado.`
+        : `Entrada + ${n} parcelas mensais, com correção IPCA sobre o saldo.`);
+
+  } else if (currentPlan === 'semEntrada'){
+    const financ = row[IDX.semEntrada];
+    const financDesc = financ * (1-desconto);
+    addArea();
+    addSpec('Valor', valor, valorDesc);
+    addSpec('Financiamento (1 + 143x)', financ, financDesc);
+    setLabelNote('Sem Entrada', 'Sem entrada: 1ª parcela + 143 parcelas mensais. Correção: IPCA+6% ao ano sobre o saldo.');
+
+  } else {
+    const entrada = row[IDX.entrada];
+    const entradaDesc = entrada * (1-desconto);
+    const financ = currentPlan === 'comBalao' ? row[IDX.comBalao] : row[IDX.semBalao];
+    const financDesc = financ * (1-desconto);
+
+    addArea();
+    addSpec('Valor', valor, valorDesc);
+    addSpec('Entrada', entrada, entradaDesc);
+    addSpec(`Facilitada em 1 + ${divisor}`, entradaDesc/(divisor+1));
+    addSpec('Financiamento (144x)', financ, financDesc);
+
+    if (currentPlan === 'comBalao'){
+      const balao = row[IDX.balaoAnual];
+      const balaoDesc = balao * (1-desconto);
+      addSpec('Balão anual (12x)', balao, balaoDesc);
+      setLabelNote('Com Balão', 'Parcela mensal reduzida + 1 balão anual (12 parcelas do balão ao longo do contrato). Correção: IPCA+6% a.a. (fixo).');
+    } else {
+      setLabelNote('Sem Balão', 'Entrada facilitada + 144 parcelas mensais de financiamento, sem balão anual. Correção: IPCA+6% a.a. (fixo).');
+    }
+  }
+
+  lastResult = { code: codeText, planLabel: planLabelText, note: planNoteText, rows: resultRows };
+});
+
+function generatePdf(){
+  if (!lastResult){ return; }
+  const btn = document.getElementById('pdfBtn');
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Gerando PDF…';
+
+  try {
+    if (!window.jspdf){
+      throw new Error('Biblioteca de PDF não carregou (sem internet na primeira abertura?)');
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'mm', format:'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const marginX = 18;
+    let y = 20;
+
+    const navy = [15,42,61];
+    const amber = [224,166,43];
+    const ink = [20,30,38];
+    const muted = [95,110,124];
+
+    // logo + header
+    try { doc.addImage(LOGO_BASE64, 'PNG', marginX, y-8, 20, 20); } catch(e){}
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(16);
+    doc.setTextColor(...navy);
+    doc.text('Orçamento de Lote', marginX + 26, y);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(10.5);
+    doc.setTextColor(...muted);
+    doc.text('Militão Imóveis', marginX + 26, y + 6);
+
+    y += 20;
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(0.6);
+    doc.line(marginX, y, pageW - marginX, y);
+    y += 8;
+
+    doc.setFont('courier','normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(...muted);
+    doc.text(lastResult.code + '  ·  Plano ' + lastResult.planLabel, marginX, y);
+    y += 10;
+
+    // spec rows
+    lastResult.rows.forEach(r => {
+      doc.setDrawColor(220,214,198);
+      doc.setLineWidth(0.2);
+      doc.line(marginX, y+3.2, pageW - marginX, y+3.2);
+
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(10.5);
+      doc.setTextColor(...ink);
+      doc.text(r.label, marginX, y);
+
+      doc.setFont('courier','bold');
+      doc.setFontSize(11.5);
+      doc.setTextColor(...ink);
+      doc.text(r.value, pageW - marginX, y, {align:'right'});
+
+      y += 6.2;
+      if (r.discounted){
+        doc.setFont('courier','normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(60,120,80);
+        doc.text(r.discounted + ' com desconto', pageW - marginX, y, {align:'right'});
+        y += 5.5;
+      }
+      y += 2;
+    });
+
+    y += 4;
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...muted);
+    const noteLines = doc.splitTextToSize(lastResult.note, pageW - marginX*2);
+    doc.text(noteLines, marginX, y);
+    y += noteLines.length * 4.2 + 10;
+
+    doc.setDrawColor(200,200,200);
+    doc.setLineWidth(0.2);
+    doc.line(marginX, y, pageW - marginX, y);
+    y += 7;
+
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(...ink);
+    doc.text('Corretora: Elizete Aurélio — Creci 25456', marginX, y);
+    y += 5.5;
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(10);
+    doc.text('WhatsApp: (85) 99673-7694', marginX, y);
+    y += 7;
+
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...muted);
+    const now = new Date();
+    doc.text('Gerado em ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}), marginX, y);
+
+    const codeSlug = lastResult.code.match(/QUADRA (\d+) · LOTE (\d+)/);
+    const filename = codeSlug
+      ? `orcamento-quadra${codeSlug[1]}-lote${codeSlug[2]}.pdf`
+      : 'orcamento-lote.pdf';
+    doc.save(filename);
+  } catch (err) {
+    alert('Não foi possível gerar o PDF agora. Verifique sua conexão com a internet (necessária apenas na primeira vez que o app é aberto) e tente novamente.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+}
+
+document.getElementById('pdfBtn').addEventListener('click', generatePdf);
+
+if ('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){
+  navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
