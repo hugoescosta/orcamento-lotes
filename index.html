@@ -551,15 +551,25 @@ function generatePdf(){
       y += 6.6;
       if (r.discounted){
         const pct = r.discPct != null ? r.discPct : '';
+        const badgeText = `-${pct}%`;
+        const gap = 4;
+
+        // medir a largura do valor com desconto usando a fonte que ele realmente usa
+        doc.setFont('courier','bold');
+        doc.setFontSize(11.5);
+        const discW = doc.getTextWidth(r.discounted);
+
+        // badge (medida e desenhada com sua própria fonte, menor)
         doc.setFont('helvetica','bold');
         doc.setFontSize(8.5);
+        const badgeW = doc.getTextWidth(badgeText) + 5;
+        const badgeX = pageW - marginX - discW - gap - badgeW;
         doc.setTextColor(255,255,255);
         doc.setFillColor(14,159,90);
-        const badgeText = `-${pct}%`;
-        const badgeW = doc.getTextWidth(badgeText) + 4;
-        doc.roundedRect(pageW - marginX - badgeW - doc.getTextWidth(r.discounted) - 4, y-3.6, badgeW, 4.6, 1, 1, 'F');
-        doc.text(badgeText, pageW - marginX - doc.getTextWidth(r.discounted) - 4 - badgeW/2, y, {align:'center'});
+        doc.roundedRect(badgeX, y-3.6, badgeW, 4.6, 1, 1, 'F');
+        doc.text(badgeText, badgeX + badgeW/2, y, {align:'center'});
 
+        // valor com desconto
         doc.setFont('courier','bold');
         doc.setFontSize(11.5);
         doc.setTextColor(12,128,73);
