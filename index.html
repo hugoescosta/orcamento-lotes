@@ -310,6 +310,7 @@
       </div>
     </div>
     <div class="condicao-hint" id="descontoHint"></div>
+    <div class="condicao-hint" id="divisorHint"></div>
 
     <button class="go" id="go">Calcular orçamento</button>
   </div>
@@ -338,7 +339,7 @@
     <div class="broker" style="border-top:none;margin-top:8px;padding-top:0;">
       <span class="name">Elizete Aurélio — Creci 25456</span> &middot; <span class="phone">WhatsApp: (85) 99673-7694</span>
     </div>
-    <div class="version-tag">v1.8 · 2026-08-31</div>
+    <div class="version-tag">v1.9 · 2026-08-31</div>
   </footer>
 </div>
 
@@ -403,6 +404,17 @@ function syncFormaUI(){
   } else {
     descontoInput.disabled = false;
     descontoHint.textContent = '';
+  }
+
+  // Facilitada só existe no plano 144x — no À Vista não há entrada facilitada a dividir
+  const divisorInput = document.getElementById('divisor');
+  const divisorHint = document.getElementById('divisorHint');
+  if (currentForma === 'avista'){
+    divisorInput.disabled = true;
+    divisorHint.textContent = 'Não se aplica ao À Vista — pagamento é feito em parcela única.';
+  } else {
+    divisorInput.disabled = false;
+    divisorHint.textContent = '';
   }
 }
 
