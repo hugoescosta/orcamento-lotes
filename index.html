@@ -18,9 +18,12 @@
     --grid:#3E6E86;
     --amber:#E0A62B;
     --amber-deep:#B9820E;
+    --save:#0E9F5A;
+    --save-deep:#0C8049;
     --ink:#0B1A26;
     --muted:#6B8296;
-    --ok:#5FA97A;
+    --ok:#1E9E5C;
+    --ok-bg:rgba(30,158,92,0.12);
     --line:rgba(255,255,255,0.14);
     --radius:14px;
   }
@@ -185,7 +188,17 @@
     font-family:'IBM Plex Mono',monospace;
     font-size:16px;font-weight:600;text-align:right;
   }
-  .spec .v small{display:block;font-size:10.5px;color:var(--ok);font-weight:500;}
+  .spec .v small{
+    display:flex;align-items:center;justify-content:flex-end;gap:6px;
+    font-size:16px;font-family:'IBM Plex Mono',monospace;color:var(--save-deep);font-weight:700;
+    margin-top:5px;letter-spacing:-.01em;
+  }
+  .disc-badge{
+    font-family:'Inter',sans-serif;font-size:11px;font-weight:800;
+    background:var(--save);color:#fff;
+    padding:2px 7px;border-radius:6px;letter-spacing:.02em;
+    white-space:nowrap;
+  }
   .note{
     font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;
   }
@@ -347,7 +360,12 @@ function specRow(label, value, discounted){
   wrap.className='spec';
   const k = document.createElement('div'); k.className='k'; k.textContent=label;
   const v = document.createElement('div'); v.className='v';
-  v.innerHTML = fmt(value) + (discounted!=null && discounted!==value ? `<small>${fmt(discounted)} com desconto</small>` : '');
+  let extra = '';
+  if (discounted!=null && discounted!==value){
+    const pct = Math.round((1 - discounted/value)*100);
+    extra = `<small><span class="disc-badge">-${pct}%</span>${fmt(discounted)}</small>`;
+  }
+  v.innerHTML = fmt(value) + extra;
   wrap.appendChild(k); wrap.appendChild(v);
   return wrap;
 }
@@ -397,7 +415,13 @@ document.getElementById('go').addEventListener('click', () => {
   };
   const addSpec = (label, value, discounted) => {
     specs.appendChild(specRow(label, value, discounted));
-    resultRows.push({label, value:fmt(value), discounted: (discounted!=null && discounted!==value) ? fmt(discounted) : null});
+    const isDisc = discounted!=null && discounted!==value;
+    resultRows.push({
+      label,
+      value:fmt(value),
+      discounted: isDisc ? fmt(discounted) : null,
+      discPct: isDisc ? Math.round((1 - discounted/value)*100) : null
+    });
   };
   let planLabelText = '', planNoteText = '';
   const setLabelNote = (label, note) => {
@@ -524,13 +548,23 @@ function generatePdf(){
       doc.setTextColor(...ink);
       doc.text(r.value, pageW - marginX, y, {align:'right'});
 
-      y += 6.2;
+      y += 6.6;
       if (r.discounted){
-        doc.setFont('courier','normal');
+        const pct = r.discPct != null ? r.discPct : '';
+        doc.setFont('helvetica','bold');
         doc.setFontSize(8.5);
-        doc.setTextColor(60,120,80);
-        doc.text(r.discounted + ' com desconto', pageW - marginX, y, {align:'right'});
-        y += 5.5;
+        doc.setTextColor(255,255,255);
+        doc.setFillColor(14,159,90);
+        const badgeText = `-${pct}%`;
+        const badgeW = doc.getTextWidth(badgeText) + 4;
+        doc.roundedRect(pageW - marginX - badgeW - doc.getTextWidth(r.discounted) - 4, y-3.6, badgeW, 4.6, 1, 1, 'F');
+        doc.text(badgeText, pageW - marginX - doc.getTextWidth(r.discounted) - 4 - badgeW/2, y, {align:'center'});
+
+        doc.setFont('courier','bold');
+        doc.setFontSize(11.5);
+        doc.setTextColor(12,128,73);
+        doc.text(r.discounted, pageW - marginX, y, {align:'right'});
+        y += 6.2;
       }
       y += 2;
     });
