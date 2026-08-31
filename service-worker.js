@@ -1,4 +1,4 @@
-const CACHE = 'orcamento-lotes-v3';
+const CACHE = 'orcamento-lotes-dev-v3';
 const ASSETS = ['./', './index.html', './manifest.json', './data.js', './icon-192.png', './icon-512.png', './logo.png', './logo-base64.js'];
 const CDN_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
