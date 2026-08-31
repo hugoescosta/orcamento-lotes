@@ -320,10 +320,6 @@
     <div class="code-tag" id="codeTag"></div>
     <div id="specs"></div>
     <div class="note" id="planNote"></div>
-    <div class="broker">
-      <div class="name">Corretora: Elizete Aurélio — Creci 25456</div>
-      <div class="phone">WhatsApp: (85) 99673-7694</div>
-    </div>
     <button class="pdf" id="pdfBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
       Baixar em PDF
@@ -336,10 +332,7 @@
 
   <footer>
     Base: aba "Tabela" &middot; <span id="rowcount"></span> lotes carregados
-    <div class="broker" style="border-top:none;margin-top:8px;padding-top:0;">
-      <span class="name">Elizete Aurélio — Creci 25456</span> &middot; <span class="phone">WhatsApp: (85) 99673-7694</span>
-    </div>
-    <div class="version-tag">v1.9 · 2026-08-31</div>
+    <div class="version-tag">v2.0 · 2026-08-31</div>
   </footer>
 </div>
 
@@ -682,16 +675,6 @@ function generatePdf(){
     doc.setDrawColor(200,200,200);
     doc.setLineWidth(0.2);
     doc.line(marginX, y, pageW - marginX, y);
-    y += 7;
-
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(10.5);
-    doc.setTextColor(...ink);
-    doc.text('Corretora: Elizete Aurélio — Creci 25456', marginX, y);
-    y += 5.5;
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(10);
-    doc.text('WhatsApp: (85) 99673-7694', marginX, y);
     y += 7;
 
     doc.setFont('helvetica','normal');
