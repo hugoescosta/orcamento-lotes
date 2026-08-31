@@ -492,7 +492,7 @@ document.getElementById('go').addEventListener('click', () => {
     const av = row[IDX.avista];
     const avDesc = av * (1-desconto);
     addArea();
-    addSpec('Valor Total', valor, valorDesc);
+    addSpec('Valor Total', valor, null);
     addSpec('Valor à Vista', av, avDesc);
     setLabelNote('À Vista', 'Pagamento único, com 25% de desconto já aplicado sobre o saldo (valor - entrada de tabela).');
 
