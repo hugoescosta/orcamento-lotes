@@ -279,6 +279,22 @@ O app agora exige e-mail e senha para entrar. Isso é feito com o
   alguém a qualquer momento, sem precisar atualizar o app.
 - Tem um botão **"Sair"** no canto superior direito da tela principal.
 
+### 1 dispositivo ativo por vez
+
+Cada conta só pode estar logada em **um aparelho de cada vez**. Ao fazer
+login num celular/navegador novo, o app registra esse como o "dispositivo
+ativo" da conta — e o aparelho anterior é desconectado automaticamente
+(na próxima vez que abrir o app, ou em até ~90 segundos se estiver com o
+app aberto na hora), com o aviso "Sua conta foi acessada em outro
+dispositivo."
+
+Vale lembrar: essa checagem identifica o **navegador/instalação**, não
+literalmente o hardware. Ou seja, usar Chrome e Firefox no mesmo celular
+conta como "2 dispositivos" diferentes pro sistema. Não existe ação de
+admin necessária pra "liberar" um aparelho depois de trocado — a pessoa
+só precisa logar de novo no aparelho que quer usar, e ele assume o
+controle automaticamente.
+
 ### Como cadastrar um novo usuário e definir a validade
 
 Por enquanto isso é feito direto no painel do Supabase (gratuito, leva
