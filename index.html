@@ -343,7 +343,7 @@
 
     <div id="resetView" style="display:none;">
       <h1 class="login-title">Nova senha</h1>
-      <div class="login-sub">Escolha uma nova senha para sua conta.</div>
+      <div class="login-sub" id="resetSub">Escolha uma nova senha para sua conta.</div>
       <form id="resetForm">
         <label for="resetPassword">Nova senha</label>
         <input type="password" id="resetPassword" autocomplete="new-password" minlength="6" required>
@@ -454,7 +454,7 @@
       <div class="broker-footer-name" id="brokerFooterName"></div>
       <div class="broker-footer-contact" id="brokerFooterContact"></div>
     </div>
-    <div class="version-tag">v4.1 · 2026-08-31</div>
+    <div class="version-tag">v4.2 · 2026-08-31</div>
   </footer>
 </div>
 
@@ -583,12 +583,15 @@ document.getElementById('switchProductBtn').addEventListener('click', async () =
   showProductPicker(userProducts);
 });
 
-function showResetView(){
+function showResetView(context, subtitle){
   hideAllScreens();
   loginScreen.style.display = 'flex';
   loginView.style.display = 'none';
   forgotView.style.display = 'none';
   resetView.style.display = 'block';
+  resetContext = context || 'recovery';
+  document.getElementById('resetSub').textContent =
+    subtitle || 'Escolha uma nova senha para sua conta.';
 }
 
 // Detecta se esta abertura da página veio de um link de "esqueci minha senha"
@@ -603,11 +606,12 @@ function isRecoveryLink(){
 }
 
 let currentProfile = null;
+let resetContext = 'recovery'; // 'recovery' (esqueci minha senha) ou 'forced' (troca obrigatória no 1º login)
 
 async function checkAccess(user){
   const { data: profile, error } = await sb
     .from('profiles')
-    .select('expires_at, active, display_name, whatsapp, creci')
+    .select('expires_at, active, display_name, whatsapp, creci, must_change_password')
     .eq('id', user.id)
     .single();
 
@@ -638,9 +642,17 @@ function renderBrokerInfo(){
   wrap.style.display = 'block';
 }
 
+async function proceedAfterAccess(user){
+  if (currentProfile && currentProfile.must_change_password){
+    showResetView('forced', 'Por segurança, defina uma nova senha antes de continuar.');
+    return;
+  }
+  await afterLogin(user);
+}
+
 async function initAuth(){
   if (isRecoveryLink()){
-    showResetView();
+    showResetView('recovery');
     // Limpa a URL um pouco depois (dá tempo do Supabase processar o link em
     // segundo plano) para evitar reprocessar o mesmo link num refresh.
     setTimeout(() => history.replaceState(null, '', window.location.pathname), 2000);
@@ -649,7 +661,7 @@ async function initAuth(){
   const { data: { session } } = await sb.auth.getSession();
   if (session && session.user){
     const ok = await checkAccess(session.user);
-    if (ok) await afterLogin(session.user);
+    if (ok) await proceedAfterAccess(session.user);
   } else {
     showLogin();
   }
@@ -659,7 +671,7 @@ async function initAuth(){
 // força a tela de nova senha (evita ficar preso na tela do app).
 sb.auth.onAuthStateChange((event) => {
   if (event === 'PASSWORD_RECOVERY'){
-    showResetView();
+    showResetView('recovery');
   }
 });
 
@@ -678,7 +690,7 @@ loginForm.addEventListener('submit', async (e) => {
     loginError.textContent = 'E-mail ou senha inválidos.';
   } else {
     const ok = await checkAccess(data.user);
-    if (ok) await afterLogin(data.user);
+    if (ok) await proceedAfterAccess(data.user);
   }
 
   loginBtn.disabled = false;
@@ -730,13 +742,26 @@ resetForm.addEventListener('submit', async (e) => {
   resetBtn.textContent = 'Salvando…';
 
   const newPassword = document.getElementById('resetPassword').value;
-  const { error } = await sb.auth.updateUser({ password: newPassword });
+  const { data, error } = await sb.auth.updateUser({ password: newPassword });
 
   if (error){
     resetError.textContent = 'Não foi possível salvar a nova senha. Tente novamente.';
     resetBtn.disabled = false;
     resetBtn.textContent = 'Salvar nova senha';
+    return;
+  }
+
+  if (resetContext === 'forced'){
+    // Troca obrigatória do 1º login: limpa a flag e já segue pro app,
+    // sem precisar deslogar e logar de novo.
+    try { await sb.rpc('clear_must_change_password'); } catch (e) { /* segue mesmo assim */ }
+    if (currentProfile) currentProfile.must_change_password = false;
+    resetSuccess.textContent = 'Senha alterada! Entrando…';
+    setTimeout(async () => {
+      await afterLogin(data.user);
+    }, 1000);
   } else {
+    // Fluxo de "esqueci minha senha": desloga e volta pro login normal.
     resetSuccess.textContent = 'Senha alterada com sucesso! Você já pode entrar com ela.';
     setTimeout(async () => {
       await sb.auth.signOut();
