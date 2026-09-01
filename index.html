@@ -69,24 +69,6 @@
   }
   .sub{color:var(--muted);font-size:14px;max-width:38ch;}
 
-  .plotmap{
-    display:grid;
-    grid-template-columns:repeat(12,1fr);
-    gap:3px;
-    margin:20px 0 22px;
-    padding:14px;
-    background:rgba(0,0,0,0.18);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-  }
-  .plot{
-    aspect-ratio:1;
-    background:rgba(255,255,255,0.06);
-    border-radius:3px;
-    transition:background .25s ease, transform .25s ease;
-  }
-  .plot.hit{background:var(--amber);box-shadow:0 0 0 2px rgba(224,166,43,.35);}
-
   .card{
     background:var(--paper);
     color:var(--ink);
@@ -164,6 +146,9 @@
     font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.4;
     min-height:1px;
   }
+  .condicao-hint.warn-hint{
+    color:#E08A2B;font-weight:600;
+  }
 
   .adjust{display:flex;gap:10px;margin-top:14px;}
   .adjust .field{flex:1;}
@@ -232,6 +217,12 @@
     margin-top:14px;font-size:9.5px;color:var(--muted);opacity:.5;
     letter-spacing:.03em;
   }
+  .broker-footer{
+    margin-top:16px;padding-top:14px;border-top:1px solid var(--line);
+    text-align:center;
+  }
+  .broker-footer-name{font-size:12.5px;font-weight:600;color:var(--paper);}
+  .broker-footer-contact{font-size:11.5px;color:var(--amber);margin-top:2px;font-family:'IBM Plex Mono',monospace;}
   .broker{
     text-align:center;font-size:12.5px;color:var(--paper);
     margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
@@ -253,21 +244,148 @@
   button.pdf:active{transform:scale(.99);}
   button.pdf svg{width:16px;height:16px;}
   button.pdf[disabled]{opacity:.6;}
+
+  .login-wrap{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:20px 16px;
+  }
+  .login-card{
+    background:var(--paper);color:var(--ink);
+    border-radius:var(--radius);padding:32px 26px;
+    max-width:360px;width:100%;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+    text-align:center;
+  }
+  .login-title{
+    font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;
+    margin:0 0 4px;color:var(--navy);
+  }
+  .login-sub{font-size:13px;color:#5A6E7E;margin-bottom:22px;}
+  .login-card label{
+    display:block;text-align:left;font-size:11px;font-weight:600;color:#5A6E7E;
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;
+  }
+  .login-card input{
+    width:100%;font-family:'Inter',sans-serif;font-size:15px;
+    padding:11px 12px;border-radius:9px;border:1.5px solid #D8D2C2;
+    background:#fff;color:var(--ink);
+  }
+  .login-card input:focus{outline:none;border-color:var(--amber-deep);}
+  .login-error{
+    margin-top:12px;font-size:12.5px;color:#C0392B;min-height:1px;
+  }
+  .login-success{
+    margin-top:12px;font-size:12.5px;color:var(--save-deep);min-height:1px;
+    line-height:1.4;
+  }
+  .link-btn{
+    display:block;width:100%;margin-top:16px;background:none;border:none;
+    color:#5A6E7E;font-family:'Inter',sans-serif;font-size:12.5px;
+    text-decoration:underline;cursor:pointer;padding:4px;
+  }
+  .header-actions{
+    display:flex;gap:8px;margin-top:10px;
+  }
+  .header-actions button{
+    background:rgba(255,255,255,0.06);border:1px solid var(--line);
+    color:var(--paper);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;
+    padding:7px 14px;border-radius:8px;cursor:pointer;
+  }
+  #appScreen{position:relative;}
+
+  .product-picker-list{display:flex;flex-direction:column;gap:10px;margin-top:18px;}
+  .product-picker-btn{
+    padding:14px;border-radius:10px;border:1.5px solid #D8D2C2;background:#fff;
+    color:var(--navy);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;
+    cursor:pointer;text-align:center;
+  }
+  .product-picker-btn:hover{border-color:var(--amber-deep);}
+  .spinner{
+    width:36px;height:36px;margin:0 auto;
+    border:3px solid #D8D2C2;border-top-color:var(--amber);border-radius:50%;
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
-<div class="wrap">
+
+<div id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <div class="brand-logo" style="margin:0 auto 18px;"><img src="logo.png" alt="Militão Imóveis"></div>
+
+    <div id="loginView">
+      <h1 class="login-title">Orçamento de Lotes</h1>
+      <div class="login-sub">Acesso restrito — entre com seu e-mail e senha.</div>
+      <form id="loginForm">
+        <label for="loginEmail">E-mail</label>
+        <input type="email" id="loginEmail" autocomplete="username" required>
+        <label for="loginPassword" style="margin-top:12px;">Senha</label>
+        <input type="password" id="loginPassword" autocomplete="current-password" required>
+        <button type="submit" class="go" id="loginBtn" style="margin-top:18px;">Entrar</button>
+        <div class="login-error" id="loginError"></div>
+      </form>
+      <button type="button" class="link-btn" id="showForgot">Esqueci minha senha</button>
+    </div>
+
+    <div id="forgotView" style="display:none;">
+      <h1 class="login-title">Redefinir senha</h1>
+      <div class="login-sub">Informe seu e-mail — vamos te enviar um link para criar uma nova senha.</div>
+      <form id="forgotForm">
+        <label for="forgotEmail">E-mail</label>
+        <input type="email" id="forgotEmail" autocomplete="username" required>
+        <button type="submit" class="go" id="forgotBtn" style="margin-top:18px;">Enviar link</button>
+        <div class="login-error" id="forgotError"></div>
+        <div class="login-success" id="forgotSuccess"></div>
+      </form>
+      <button type="button" class="link-btn" id="backToLogin">Voltar para o login</button>
+    </div>
+
+    <div id="resetView" style="display:none;">
+      <h1 class="login-title">Nova senha</h1>
+      <div class="login-sub">Escolha uma nova senha para sua conta.</div>
+      <form id="resetForm">
+        <label for="resetPassword">Nova senha</label>
+        <input type="password" id="resetPassword" autocomplete="new-password" minlength="6" required>
+        <button type="submit" class="go" id="resetBtn" style="margin-top:18px;">Salvar nova senha</button>
+        <div class="login-error" id="resetError"></div>
+        <div class="login-success" id="resetSuccess"></div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<div id="productPickerScreen" class="login-wrap" style="display:none;">
+  <div class="login-card">
+    <div class="brand-logo" style="margin:0 auto 18px;"><img src="logo.png" alt="Militão Imóveis"></div>
+    <h1 class="login-title">Escolha o produto</h1>
+    <div class="login-sub">Você tem acesso a mais de um produto. Qual deseja consultar agora?</div>
+    <div id="productPickerList" class="product-picker-list"></div>
+  </div>
+</div>
+
+<div id="loadingScreen" class="login-wrap" style="display:none;">
+  <div class="login-card" style="text-align:center;">
+    <div class="spinner"></div>
+    <div class="login-sub" style="margin-top:14px;">Carregando dados do produto…</div>
+  </div>
+</div>
+
+<div class="wrap" id="appScreen" style="display:none;">
 
   <header>
     <div class="brand-logo"><img src="logo.png" alt="Militão Imóveis"></div>
     <div class="header-text">
-      <div class="eyebrow">Consulta &amp; Orçamento</div>
+      <div class="eyebrow">Consulta &amp; Orçamento <span id="currentProductLabel"></span></div>
       <h1>Orçamento de Lotes</h1>
+      <div class="header-actions">
+        <button id="switchProductBtn" title="Trocar produto" style="display:none;">Trocar produto</button>
+        <button class="logout-btn" id="logoutBtn" title="Sair">Sair</button>
+      </div>
       <div class="sub">Informe quadra e lote para localizar o imóvel na base e montar a proposta.</div>
     </div>
   </header>
-
-  <div class="plotmap" id="plotmap" aria-hidden="true"></div>
 
   <div class="card">
     <h2>Localização do lote</h2>
@@ -302,11 +420,11 @@
     <div class="adjust">
       <div class="field">
         <label for="desconto">Desconto (%)</label>
-        <input type="number" id="desconto" value="0" min="0" max="90" step="1">
+        <input type="number" id="desconto" value="0" min="0" max="40" step="1">
       </div>
       <div class="field">
         <label for="divisor">Facilitada em 1 +</label>
-        <input type="number" id="divisor" value="2" min="1" max="12" step="1">
+        <input type="number" id="divisor" value="2" min="0" max="12" step="1">
       </div>
     </div>
     <div class="condicao-hint" id="descontoHint"></div>
@@ -332,28 +450,344 @@
 
   <footer>
     Base: aba "Tabela" &middot; <span id="rowcount"></span> lotes carregados
-    <div class="version-tag">v2.0 · 2026-08-31</div>
+    <div class="broker-footer" id="brokerFooter" style="display:none;">
+      <div class="broker-footer-name" id="brokerFooterName"></div>
+      <div class="broker-footer-contact" id="brokerFooterContact"></div>
+    </div>
+    <div class="version-tag">v4.1 · 2026-08-31</div>
   </footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ====== CONFIGURAÇÃO DO SUPABASE (login e controle de validade) ======
+const SUPABASE_URL = 'https://xuodxpjobozczokvhgvx.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1b2R4cGpvYm96Y3pva3ZoZ3Z4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxODIwNjEsImV4cCI6MjEwMzc1ODA2MX0.gJWNTKSX8Yx5_L5cb9r0x6A5FlTeWyNQfKdQGAverU4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const loginScreen = document.getElementById('loginScreen');
+const appScreen = document.getElementById('appScreen');
+const productPickerScreen = document.getElementById('productPickerScreen');
+const loadingScreen = document.getElementById('loadingScreen');
+const loginView = document.getElementById('loginView');
+const forgotView = document.getElementById('forgotView');
+const resetView = document.getElementById('resetView');
+const loginForm = document.getElementById('loginForm');
+const loginError = document.getElementById('loginError');
+const loginBtn = document.getElementById('loginBtn');
+const forgotForm = document.getElementById('forgotForm');
+const forgotError = document.getElementById('forgotError');
+const forgotSuccess = document.getElementById('forgotSuccess');
+const forgotBtn = document.getElementById('forgotBtn');
+const resetForm = document.getElementById('resetForm');
+const resetError = document.getElementById('resetError');
+const resetSuccess = document.getElementById('resetSuccess');
+const resetBtn = document.getElementById('resetBtn');
+
+let userProducts = [];
+let currentProductId = null;
+
+function hideAllScreens(){
+  loginScreen.style.display = 'none';
+  productPickerScreen.style.display = 'none';
+  loadingScreen.style.display = 'none';
+  appScreen.style.display = 'none';
+}
+
+function showLoginView(){
+  loginView.style.display = 'block';
+  forgotView.style.display = 'none';
+  resetView.style.display = 'none';
+  loginError.textContent = '';
+}
+
+function showLogin(message){
+  hideAllScreens();
+  loginScreen.style.display = 'flex';
+  showLoginView();
+  loginError.textContent = message || '';
+}
+
+function showApp(){
+  hideAllScreens();
+  appScreen.style.display = 'block';
+}
+
+function showLoading(){
+  hideAllScreens();
+  loadingScreen.style.display = 'flex';
+}
+
+async function loadUserProducts(userId){
+  const { data, error } = await sb
+    .from('user_products')
+    .select('products(id, slug, name)')
+    .eq('user_id', userId);
+  if (error || !data) return [];
+  return data.map(r => r.products).filter(Boolean);
+}
+
+function showProductPicker(products){
+  hideAllScreens();
+  const list = document.getElementById('productPickerList');
+  list.innerHTML = '';
+  products.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'product-picker-btn';
+    btn.textContent = p.name;
+    btn.addEventListener('click', () => selectProduct(p));
+    list.appendChild(btn);
+  });
+  productPickerScreen.style.display = 'flex';
+}
+
+async function selectProduct(product){
+  currentProductId = product.id;
+  showLoading();
+  const ok = await loadLotesForProduct(product.id);
+  if (!ok){
+    showLogin('Não foi possível carregar os dados desse produto. Tente novamente.');
+    return;
+  }
+  document.getElementById('currentProductLabel').textContent = '— ' + product.name;
+  document.getElementById('switchProductBtn').style.display = userProducts.length > 1 ? 'inline-block' : 'none';
+  showApp();
+}
+
+async function afterLogin(user){
+  showLoading();
+  userProducts = await loadUserProducts(user.id);
+
+  if (userProducts.length === 0){
+    await sb.auth.signOut();
+    showLogin('Você não tem nenhum produto liberado. Fale com o administrador.');
+    return;
+  }
+
+  if (userProducts.length === 1){
+    await selectProduct(userProducts[0]);
+  } else {
+    showProductPicker(userProducts);
+  }
+}
+
+document.getElementById('switchProductBtn').addEventListener('click', async () => {
+  showLoading();
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session || !session.user){ showLogin(); return; }
+  userProducts = await loadUserProducts(session.user.id);
+  if (userProducts.length <= 1){
+    showApp();
+    return;
+  }
+  showProductPicker(userProducts);
+});
+
+function showResetView(){
+  hideAllScreens();
+  loginScreen.style.display = 'flex';
+  loginView.style.display = 'none';
+  forgotView.style.display = 'none';
+  resetView.style.display = 'block';
+}
+
+// Detecta se esta abertura da página veio de um link de "esqueci minha senha"
+// (checando a própria URL, ANTES de decidir se mostra o app). Isso evita a
+// corrida entre o Supabase logar automaticamente e a tela de nova senha —
+// um problema conhecido do próprio Supabase (o evento de login às vezes
+// dispara antes do evento de recuperação de senha).
+function isRecoveryLink(){
+  const hash = window.location.hash || '';
+  const search = window.location.search || '';
+  return hash.includes('type=recovery') || search.includes('type=recovery') || search.includes('code=');
+}
+
+let currentProfile = null;
+
+async function checkAccess(user){
+  const { data: profile, error } = await sb
+    .from('profiles')
+    .select('expires_at, active, display_name, whatsapp, creci')
+    .eq('id', user.id)
+    .single();
+
+  const today = new Date().toISOString().slice(0, 10);
+  if (error || !profile || !profile.active || profile.expires_at < today){
+    await sb.auth.signOut();
+    currentProfile = null;
+    showLogin('Seu acesso expirou ou está inativo. Fale com o administrador.');
+    return false;
+  }
+  currentProfile = profile;
+  renderBrokerInfo();
+  return true;
+}
+
+function renderBrokerInfo(){
+  const wrap = document.getElementById('brokerFooter');
+  const nameEl = document.getElementById('brokerFooterName');
+  const contactEl = document.getElementById('brokerFooterContact');
+  if (!currentProfile || !currentProfile.display_name){
+    wrap.style.display = 'none';
+    return;
+  }
+  let nameLine = currentProfile.display_name;
+  if (currentProfile.creci) nameLine += ' — Creci ' + currentProfile.creci;
+  nameEl.textContent = nameLine;
+  contactEl.textContent = currentProfile.whatsapp ? 'WhatsApp: ' + currentProfile.whatsapp : '';
+  wrap.style.display = 'block';
+}
+
+async function initAuth(){
+  if (isRecoveryLink()){
+    showResetView();
+    // Limpa a URL um pouco depois (dá tempo do Supabase processar o link em
+    // segundo plano) para evitar reprocessar o mesmo link num refresh.
+    setTimeout(() => history.replaceState(null, '', window.location.pathname), 2000);
+    return;
+  }
+  const { data: { session } } = await sb.auth.getSession();
+  if (session && session.user){
+    const ok = await checkAccess(session.user);
+    if (ok) await afterLogin(session.user);
+  } else {
+    showLogin();
+  }
+}
+
+// Rede de segurança: se por algum motivo o evento chegar depois, ainda assim
+// força a tela de nova senha (evita ficar preso na tela do app).
+sb.auth.onAuthStateChange((event) => {
+  if (event === 'PASSWORD_RECOVERY'){
+    showResetView();
+  }
+});
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  loginError.textContent = '';
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Entrando…';
+
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+  if (error){
+    loginError.textContent = 'E-mail ou senha inválidos.';
+  } else {
+    const ok = await checkAccess(data.user);
+    if (ok) await afterLogin(data.user);
+  }
+
+  loginBtn.disabled = false;
+  loginBtn.textContent = 'Entrar';
+});
+
+document.getElementById('showForgot').addEventListener('click', () => {
+  loginView.style.display = 'none';
+  forgotView.style.display = 'block';
+  forgotError.textContent = '';
+  forgotSuccess.textContent = '';
+  document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value;
+});
+
+document.getElementById('backToLogin').addEventListener('click', showLoginView);
+
+forgotForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  forgotError.textContent = '';
+  forgotSuccess.textContent = '';
+  forgotBtn.disabled = true;
+  forgotBtn.textContent = 'Enviando…';
+
+  const email = document.getElementById('forgotEmail').value.trim();
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+
+  if (error){
+    console.error('resetPasswordForEmail error:', error);
+    if (error.code === 'over_email_send_rate_limit' || /rate limit|only request this/i.test(error.message || '')){
+      forgotError.textContent = 'Limite de envio de e-mail atingido. O serviço de e-mail padrão do sistema só permite pouquíssimos envios por hora — espere um pouco mais e tente de novo, ou avise o administrador para configurar um serviço de e-mail próprio.';
+    } else {
+      forgotError.textContent = 'Não foi possível enviar o link (' + (error.message || 'erro desconhecido') + '). Tente novamente em instantes.';
+    }
+  } else {
+    forgotSuccess.textContent = 'Link enviado! Verifique seu e-mail (e a caixa de spam) e clique no link para criar uma nova senha.';
+  }
+
+  forgotBtn.disabled = false;
+  forgotBtn.textContent = 'Enviar link';
+});
+
+resetForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  resetError.textContent = '';
+  resetSuccess.textContent = '';
+  resetBtn.disabled = true;
+  resetBtn.textContent = 'Salvando…';
+
+  const newPassword = document.getElementById('resetPassword').value;
+  const { error } = await sb.auth.updateUser({ password: newPassword });
+
+  if (error){
+    resetError.textContent = 'Não foi possível salvar a nova senha. Tente novamente.';
+    resetBtn.disabled = false;
+    resetBtn.textContent = 'Salvar nova senha';
+  } else {
+    resetSuccess.textContent = 'Senha alterada com sucesso! Você já pode entrar com ela.';
+    setTimeout(async () => {
+      await sb.auth.signOut();
+      showLogin();
+    }, 2000);
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  currentProfile = null;
+  userProducts = [];
+  currentProductId = null;
+  document.getElementById('brokerFooter').style.display = 'none';
+  showLogin();
+});
+
+initAuth();
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="logo-base64.js"></script>
-<script src="data.js"></script>
 <script>
-// LOTES_DATA columns: [quadra, lote, area, valor, entrada, avista1x, parcela12x, parcela24x, parcela36x, semBalao144x, balaoAnual, comBalao144x, semEntrada144x]
+// Colunas de cada linha de lote: [quadra, lote, area, valor, entrada, avista1x, parcela12x, parcela24x, parcela36x, semBalao144x, balaoAnual, comBalao144x, semEntrada144x]
 const IDX = {quadra:0, lote:1, area:2, valor:3, entrada:4, avista:5, p12:6, p24:7, p36:8, semBalao:9, balaoAnual:10, comBalao:11, semEntrada:12};
 
+let LOTES_DATA = [];
 const byCode = new Map();
-LOTES_DATA.forEach(row => byCode.set(row[IDX.quadra] + '-' + row[IDX.lote], row));
-document.getElementById('rowcount').textContent = LOTES_DATA.length;
 
-// signature plot-map: draw a mini grid, highlight cell on lookup
-const plotmap = document.getElementById('plotmap');
-const CELLS = 60;
-for (let i=0;i<CELLS;i++){
-  const d = document.createElement('div');
-  d.className='plot';
-  plotmap.appendChild(d);
+// Busca os lotes do produto selecionado direto do banco (Supabase), em vez
+// de um arquivo estático — assim cada usuário só enxerga os dados dos
+// produtos que tiver sido liberado (protegido por regra de segurança no banco).
+async function loadLotesForProduct(productId){
+  const { data, error } = await sb
+    .from('lotes')
+    .select('quadra,lote,area,valor,entrada,avista,p12,p24,p36,sem_balao,balao_anual,com_balao,sem_entrada')
+    .eq('product_id', productId);
+
+  if (error || !data){
+    console.error('Erro ao carregar lotes:', error);
+    return false;
+  }
+
+  LOTES_DATA = data.map(r => [
+    r.quadra, r.lote, r.area, r.valor, r.entrada, r.avista,
+    r.p12, r.p24, r.p36, r.sem_balao, r.balao_anual, r.com_balao, r.sem_entrada
+  ]);
+  byCode.clear();
+  LOTES_DATA.forEach(row => byCode.set(row[IDX.quadra] + '-' + row[IDX.lote], row));
+  document.getElementById('rowcount').textContent = LOTES_DATA.length;
+  return true;
 }
 
 const FORMAS_COM_CONDICAO = new Set(['p144']); // formas que hoje têm dados por condição (Sem Balão/Com Balão/Sem Entrada)
@@ -394,9 +828,10 @@ function syncFormaUI(){
     descontoInput.value = 0;
     descontoInput.disabled = true;
     descontoHint.textContent = 'Não se aplica ao À Vista — o desconto de 25% já vem embutido no valor à vista.';
+    descontoHint.classList.remove('warn-hint');
   } else {
     descontoInput.disabled = false;
-    descontoHint.textContent = '';
+    checkDescontoWarning();
   }
 
   // Facilitada só existe no plano 144x — no À Vista não há entrada facilitada a dividir
@@ -405,11 +840,44 @@ function syncFormaUI(){
   if (currentForma === 'avista'){
     divisorInput.disabled = true;
     divisorHint.textContent = 'Não se aplica ao À Vista — pagamento é feito em parcela única.';
+    divisorHint.classList.remove('warn-hint');
   } else {
     divisorInput.disabled = false;
-    divisorHint.textContent = '';
+    checkDivisorWarning();
   }
 }
+
+function checkDivisorWarning(){
+  if (currentForma === 'avista') return;
+  const divisorInput = document.getElementById('divisor');
+  const divisorHint = document.getElementById('divisorHint');
+  const val = parseInt(divisorInput.value, 10);
+  if (!isNaN(val) && val > 2){
+    divisorHint.textContent = 'Atenção: valor acima do padrão (1 + 2). Confirme se é isso mesmo antes de gerar a proposta.';
+    divisorHint.classList.add('warn-hint');
+  } else {
+    divisorHint.textContent = '';
+    divisorHint.classList.remove('warn-hint');
+  }
+}
+
+document.getElementById('divisor').addEventListener('input', checkDivisorWarning);
+
+function checkDescontoWarning(){
+  if (currentForma === 'avista') return;
+  const descontoInput = document.getElementById('desconto');
+  const descontoHint = document.getElementById('descontoHint');
+  const val = parseFloat(descontoInput.value);
+  if (!isNaN(val) && val > 25){
+    descontoHint.textContent = 'Atenção: desconto acima de 25%. O máximo permitido é 40% — confirme se é isso mesmo antes de gerar a proposta.';
+    descontoHint.classList.add('warn-hint');
+  } else {
+    descontoHint.textContent = '';
+    descontoHint.classList.remove('warn-hint');
+  }
+}
+
+document.getElementById('desconto').addEventListener('input', checkDescontoWarning);
 
 document.querySelectorAll('#plansForma .plan-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -434,12 +902,6 @@ syncFormaUI();
 const fmt = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 const fmtArea = n => n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' m²';
 
-function highlightPlot(seed){
-  document.querySelectorAll('.plot').forEach(p=>p.classList.remove('hit'));
-  const idx = Math.abs(seed) % CELLS;
-  plotmap.children[idx].classList.add('hit');
-}
-
 function specRow(label, value, discounted){
   const wrap = document.createElement('div');
   wrap.className='spec';
@@ -458,8 +920,11 @@ function specRow(label, value, discounted){
 document.getElementById('go').addEventListener('click', () => {
   const q = parseInt(document.getElementById('quadra').value, 10);
   const l = parseInt(document.getElementById('lote').value, 10);
-  const desconto = Math.min(Math.max(parseFloat(document.getElementById('desconto').value)||0, 0), 90) / 100;
-  const divisor = Math.max(parseInt(document.getElementById('divisor').value,10) || 2, 1);
+  const desconto = Math.min(Math.max(parseFloat(document.getElementById('desconto').value)||0, 0), 40) / 100;
+  const divisor = (() => {
+    const parsed = parseInt(document.getElementById('divisor').value, 10);
+    return Math.max(isNaN(parsed) ? 2 : parsed, 0);
+  })();
 
   const resultCard = document.getElementById('result');
   const emptyState = document.getElementById('emptyState');
@@ -483,7 +948,6 @@ document.getElementById('go').addEventListener('click', () => {
 
   emptyState.style.display='none';
   resultCard.style.display='block';
-  highlightPlot(q*97 + l*13);
 
   const codeText = `QUADRA ${row[IDX.quadra]} · LOTE ${row[IDX.lote]} · CÓD. ${row[IDX.quadra]}${row[IDX.lote]}`;
   document.getElementById('codeTag').textContent = codeText;
@@ -530,9 +994,13 @@ document.getElementById('go').addEventListener('click', () => {
     const {n, idx, desc} = map[currentForma];
     const parcela = row[idx];
     const parcelaDesc = parcela * (1-desconto);
+    const facilitada = entradaDesc / (divisor + 1);
     addArea();
     addSpec('Valor Total', valor, valorDesc);
     addSpec('Entrada', entrada, entradaDesc);
+    if (divisor > 0 && Math.round(facilitada * 100) !== 0){
+      addSpec(`Facilitada em 1 + ${divisor}`, facilitada);
+    }
     addSpec(`Parcela (${n}x)`, parcela, parcelaDesc);
     setLabelNote(`${n}x`,
       desc > 0
@@ -552,11 +1020,14 @@ document.getElementById('go').addEventListener('click', () => {
     const entradaDesc = entrada * (1-desconto);
     const financ = currentCondicao === 'comBalao' ? row[IDX.comBalao] : row[IDX.semBalao];
     const financDesc = financ * (1-desconto);
+    const facilitada = entradaDesc / (divisor + 1);
 
     addArea();
     addSpec('Valor', valor, valorDesc);
     addSpec('Entrada', entrada, entradaDesc);
-    addSpec(`Facilitada em 1 + ${divisor}`, entradaDesc/(divisor+1));
+    if (divisor > 0 && Math.round(facilitada * 100) !== 0){
+      addSpec(`Facilitada em 1 + ${divisor}`, facilitada);
+    }
     addSpec('Financiamento (144x)', financ, financDesc);
 
     if (currentCondicao === 'comBalao'){
@@ -676,6 +1147,24 @@ function generatePdf(){
     doc.setLineWidth(0.2);
     doc.line(marginX, y, pageW - marginX, y);
     y += 7;
+
+    if (currentProfile && currentProfile.display_name){
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(10.5);
+      doc.setTextColor(...ink);
+      let nameLine = currentProfile.display_name;
+      if (currentProfile.creci) nameLine += ' — Creci ' + currentProfile.creci;
+      doc.text(nameLine, marginX, y);
+      y += 5.5;
+      if (currentProfile.whatsapp){
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(10);
+        doc.setTextColor(...muted);
+        doc.text('WhatsApp: ' + currentProfile.whatsapp, marginX, y);
+        y += 5.5;
+      }
+      y += 2;
+    }
 
     doc.setFont('helvetica','normal');
     doc.setFontSize(8.5);

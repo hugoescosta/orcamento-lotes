@@ -61,18 +61,13 @@ Se a planilha for atualizada (novos lotes, novos valores), é só gerar o
 
 ---
 
-## 2. Marca e corretora
+## 2. Marca
 
-- **Logo:** a marca "Militão Imóveis" aparece no topo do app e no PDF gerado
-  (arquivo `logo.png`).
-- **Corretora:** os dados abaixo aparecem em todo orçamento calculado (no
-  card de resultado, no rodapé do app e no PDF):
-  - **Elizete Aurélio — Creci 25456**
-  - **WhatsApp: (85) 99673-7694**
+- **Logo:** a marca "Militão Imóveis" aparece no topo do app e no PDF
+  gerado (arquivo `logo.png`).
 
-Para trocar a logo ou os dados da corretora depois, é só substituir o
-arquivo `logo.png` (mesma proporção) ou pedir a atualização do texto no
-`index.html`.
+Para trocar a logo depois, é só substituir o arquivo `logo.png` (mesma
+proporção).
 
 ---
 
@@ -82,8 +77,8 @@ Depois de calcular o orçamento, aparece o botão **"Baixar em PDF"** dentro
 do card de resultado. Ele gera o arquivo **diretamente** (não abre a tela
 de impressão do navegador): toque no botão e o PDF já cai na pasta
 Downloads do celular, pronto para compartilhar no WhatsApp com o cliente —
-sempre em **uma única página**, com logo, dados do lote, valores do plano
-escolhido e o contato da corretora.
+sempre em **uma única página**, com logo, dados do lote e valores do plano
+escolhido.
 
 ---
 
@@ -202,26 +197,146 @@ Se a combinação de quadra/lote não existir na base, o app avisa
 
 ---
 
-## 7. Atualizar a base de dados (quando a planilha mudar)
+## 7. Como os dados dos lotes são carregados
 
-O app não lê o `.xlsx` diretamente no celular — os dados ficam
-"congelados" dentro do arquivo `data.js` para o app funcionar offline e
-carregar instantaneamente. Sempre que a planilha for atualizada, é preciso
-gerar o `data.js` de novo e reenviar/re-hospedar os arquivos.
+Desde a versão com múltiplos produtos (v4.0), os dados dos lotes **não
+ficam mais** num arquivo estático (`data.js`) publicado junto com o site —
+eles moram no banco de dados (Supabase), numa tabela `lotes`, protegidos
+por uma regra de segurança: cada usuário só consegue ver os lotes dos
+produtos que tiver sido explicitamente liberado para ele.
 
-Isso pode ser feito pedindo a atualização (envie a nova planilha) ou,
-tecnicamente, repetindo a extração da aba `Tabela` (colunas QUADRA, LOTE,
-ÁREA, VALOR TOTAL, ENTRADA, e as colunas de financiamento 144x sem balão,
-balão anual, 144x com balão e 144x sem entrada) para o mesmo formato de
-lista usado em `data.js`.
+Isso significa duas coisas importantes:
+
+- **Precisa de internet o tempo todo** para consultar lotes (antes,
+  funcionava 100% offline depois da primeira abertura — agora não, porque
+  os dados vêm do banco a cada login/troca de produto).
+- **É seguro de verdade**: antes, mesmo escondido atrás do login, o
+  arquivo de dados ainda estava tecnicamente público no site. Agora,
+  ninguém consegue ver os lotes de um produto sem ter sido liberado para
+  ele — é uma regra aplicada no banco, não só escondida na tela.
+
+Para atualizar os dados de um produto existente (planilha mudou) ou
+cadastrar os lotes de um produto novo, veja a seção 9.
 
 ---
 
-## 8. Perguntas frequentes
+## 8. Múltiplos produtos (loteamentos)
+
+O app agora suporta vários produtos ao mesmo tempo — cada usuário só
+enxerga os produtos que você liberar para ele, e pode ter acesso a mais
+de um simultaneamente.
+
+**Como funciona para quem usa o app:**
+- Se o usuário tem acesso a só 1 produto, o app abre direto nele (igual
+  antes, sem tela extra).
+- Se tem acesso a mais de 1, aparece uma tela para escolher qual produto
+  consultar, logo depois do login.
+- Um botão **"Trocar produto"** aparece no topo da tela (ao lado de
+  "Sair") sempre que o usuário tiver mais de um produto liberado.
+
+**Como você (admin) gerencia isso:**
+Tudo pelo painel local (`painel-usuarios-local`, veja o README dele):
+- **🏷️ Criar novo produto** — cadastra um loteamento novo (nome +
+  identificador).
+- **✅ Conceder acesso a produto** — libera um produto para um usuário.
+- **⛔ Revogar acesso a produto** — remove o acesso de um usuário a um
+  produto, sem mexer no login dele.
+
+**Arquivos SQL relevantes** (todos na pasta do app):
+- `supabase-schema-multiproduto.sql` — cria as tabelas `products`,
+  `lotes` e `user_products`, com as regras de segurança. Rode **uma
+  única vez**, antes de tudo.
+- `supabase-migracao-jeri.sql` — cria o produto "Jeri" e migra os 1.370
+  lotes que estavam no antigo `data.js` para dentro do banco, além de
+  liberar o acesso a esse produto para todos os usuários que já existem
+  hoje (ninguém perde acesso na troca). Rode **uma única vez**, depois
+  do script acima.
+
+**Para cadastrar os lotes de um produto novo no futuro:** me mande a
+planilha de origem desse loteamento (mesmo formato da que você já
+mandou) — eu extraio os dados e gero um script SQL de importação
+específico para ele, do mesmo jeito que fiz para o Jeri.
+
+---
+
+## 9. Login e controle de validade de acesso
+
+O app agora exige e-mail e senha para entrar. Isso é feito com o
+**Supabase** (banco de dados + autenticação gratuitos), configurado em
+`supabase-setup.sql` e conectado no `index.html`.
+
+### Como funciona
+
+- Quem abre o app vê a tela de login primeiro. Sem login válido, não
+  acessa a consulta de lotes.
+- Cada usuário tem uma **data de validade** (`expires_at`) guardada no
+  banco. A cada abertura do app (e a cada login), o sistema confere se
+  essa data ainda não passou e se o usuário está marcado como `active`.
+  Se estiver vencido ou inativo, ele é desconectado automaticamente e vê
+  a mensagem "Seu acesso expirou ou está inativo."
+- Por isso, diferente do resto do app, **o login sempre precisa de
+  internet** — é essa verificação online que permite revogar o acesso de
+  alguém a qualquer momento, sem precisar atualizar o app.
+- Tem um botão **"Sair"** no canto superior direito da tela principal.
+
+### Como cadastrar um novo usuário e definir a validade
+
+Por enquanto isso é feito direto no painel do Supabase (gratuito, leva
+menos de 1 minuto por pessoa):
+
+1. No painel do projeto, vá em **Authentication → Users → Add user →
+   Create new user**.
+2. Preencha e-mail e senha, e marque **"Auto Confirm User"** (sem isso o
+   login não funciona, pois fica esperando confirmação por e-mail que
+   nunca chega).
+3. Copie o **UUID** desse usuário, que aparece na lista.
+4. Vá em **Table Editor → profiles → Insert row**.
+5. Cole o UUID no campo `id`, preencha `email`, escolha a data de
+   validade em `expires_at`, e deixe `active` marcado como `true`.
+
+Para **renovar** o acesso de alguém, basta editar a data em `expires_at`
+na mesma tabela. Para **bloquear** alguém antes do vencimento, marque
+`active` como `false`.
+
+### Configuração inicial (uma vez só)
+
+1. Crie um projeto gratuito em [supabase.com](https://supabase.com).
+2. No **SQL Editor**, rode o conteúdo do arquivo `supabase-setup.sql`
+   (cria a tabela `profiles` com as regras de segurança).
+3. Em **Project Settings → API**, copie a **Project URL** e a chave
+   **anon public**.
+4. Abra o `index.html`, procure por `SUPABASE_URL` e
+   `SUPABASE_ANON_KEY` (bem no topo do bloco de scripts) e cole os dois
+   valores no lugar de `'COLE_AQUI_A_URL_DO_SEU_PROJETO'` e
+   `'COLE_AQUI_A_CHAVE_ANON_PUBLICA'`.
+
+> A chave "anon public" é feita para ficar exposta no código do site —
+> ela sozinha não dá acesso a nada; quem protege os dados é a regra de
+> segurança (RLS) criada pelo `supabase-setup.sql`, que só deixa cada
+> usuário enxergar o próprio registro de validade.
+
+### Limitação atual (importante)
+
+O login protege a **tela** do app (ninguém entra sem senha válida). Mas
+os dados dos lotes continuam num arquivo estático (`data.js`) que fica
+publicado junto com o site — ou seja, tecnicamente alguém que soubesse o
+endereço exato desse arquivo poderia baixá-lo direto, sem passar pelo
+login. Isso não afeta o uso normal (ninguém vê ou acha esse link sem
+saber que ele existe), mas se no futuro for importante impedir isso por
+completo, dá para mover os dados dos lotes também para dentro do
+Supabase, protegidos pela mesma regra de segurança — é um passo a mais
+que posso fazer quando quiser.
+
+---
+
+## 10. Perguntas frequentes
 
 **Precisa de internet para usar?**
-Não, depois de instalado (Caminhos A, B ou C) o app funciona 100% offline
-— os dados dos 1.370 lotes estão embutidos no próprio app.
+Sim — desde a versão com múltiplos produtos (v4.0), os dados dos lotes
+vêm do banco de dados a cada login e a cada troca de produto, então
+precisa de internet pra consultar. A interface do app (telas, botões)
+ainda carrega rápido graças ao cache do navegador, mas a busca de lotes
+em si depende de conexão.
 
 **O PDF precisa de internet?**
 Só na primeira vez que o app é aberto (para baixar a biblioteca que monta
