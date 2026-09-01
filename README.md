@@ -220,6 +220,26 @@ cadastrar os lotes de um produto novo, veja a seção 9.
 
 ---
 
+## 7.5 Imobiliárias e logos por corretor
+
+Cada corretor pertence a uma **imobiliária** (não precisa mais ser todo
+mundo da Militão Imóveis). Cada imobiliária tem seu próprio nome e logo —
+e o app mostra a logo certa automaticamente, tanto na tela (depois do
+login) quanto no PDF gerado, de acordo com a imobiliária de quem estiver
+logado.
+
+- **Cadastrar uma imobiliária nova:** painel local → "🏢 Criar nova
+  imobiliária" (pede o nome e, opcionalmente, a imagem da logo — aceita
+  PNG, JPG ou WEBP).
+- **Vincular um corretor a uma imobiliária:** acontece automaticamente na
+  hora de criar o usuário — se você tiver mais de uma imobiliária
+  cadastrada, o painel local pergunta qual é a do novo corretor.
+- Se um corretor não tiver imobiliária vinculada, ou a imobiliária dele
+  não tiver logo cadastrada, o app usa a logo padrão (Militão Imóveis)
+  como reserva.
+
+---
+
 ## 8. Múltiplos produtos (loteamentos)
 
 O app agora suporta vários produtos ao mesmo tempo — cada usuário só
