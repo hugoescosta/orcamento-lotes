@@ -345,7 +345,26 @@ que posso fazer quando quiser.
 
 ---
 
-## 10. Perguntas frequentes
+## 10. Logs de uso
+
+Todo evento importante do app fica registrado numa tabela `logs` no
+Supabase: login (com sucesso ou falha), logout, troca de senha, troca de
+dispositivo, seleção de produto, busca de lote (quadra/lote pesquisado,
+plano escolhido, se achou ou não) e geração de PDF.
+
+**Só o painel administrativo local consegue ler os logs** — no app em si
+não existe nenhuma tela de log, e a regra de segurança do banco impede
+qualquer usuário comum de consultar os registros de qualquer conta,
+inclusive a própria. Só a chave secreta (usada pelo painel local) tem
+esse acesso.
+
+Para consultar, abra o `criar-usuarios.sh` → **"📜 Ver logs de uso"** —
+mostra os últimos 300 registros, mais recentes primeiro, com data/hora,
+usuário, tipo de evento, produto e detalhes.
+
+---
+
+## 11. Perguntas frequentes
 
 **Precisa de internet para usar?**
 Sim — desde a versão com múltiplos produtos (v4.0), os dados dos lotes
